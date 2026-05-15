@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+  <title>HTML 表单数据填充工具</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>HTML 填充器</h1>
+        <p class="subtitle">表单数据自动填充工具</p>
+      </div>
+
+      <section class="panel">
+        <h2>步骤 1：加载 HTML</h2>
+        <button id="btn-open-html" class="btn btn-primary">
+          <span class="icon">📄</span> 打开 HTML 文件
+        </button>
+        <div id="html-status" class="status">未加载</div>
+      </section>
+
+      <section class="panel">
+        <h2>步骤 2：导入数据</h2>
+        <button id="btn-import-data" class="btn btn-primary">
+          <span class="icon">📊</span> 导入 CSV / JSON
+        </button>
+        <div id="data-status" class="status">未导入</div>
+      </section>
+
+      <section class="panel">
+        <h2>步骤 3：字段映射</h2>
+        <div id="mapping-area" class="mapping-area">
+          <p class="placeholder">先加载 HTML 与数据，自动识别字段后在此映射。</p>
+        </div>
+        <button id="btn-auto-map" class="btn btn-secondary" disabled>
+          <span class="icon">🔗</span> 自动映射
+        </button>
+      </section>
+
+      <section class="panel">
+        <h2>步骤 4：填充与导出</h2>
+        <div class="row-nav">
+          <button id="btn-prev-row" class="btn btn-icon" disabled>‹</button>
+          <span id="row-indicator" class="row-indicator">0 / 0</span>
+          <button id="btn-next-row" class="btn btn-icon" disabled>›</button>
+        </div>
+        <button id="btn-fill" class="btn btn-success" disabled>
+          <span class="icon">✨</span> 填充当前行
+        </button>
+        <button id="btn-export-single" class="btn btn-secondary" disabled>
+          <span class="icon">💾</span> 导出当前结果
+        </button>
+        <button id="btn-export-batch" class="btn btn-secondary" disabled>
+          <span class="icon">📦</span> 批量导出全部
+        </button>
+      </section>
+    </aside>
+
+    <main class="main">
+      <div class="tabs">
+        <button class="tab active" data-tab="preview">表单预览</button>
+        <button class="tab" data-tab="fields">检测字段</button>
+        <button class="tab" data-tab="data">数据表</button>
+        <button class="tab" data-tab="source">HTML 源码</button>
+      </div>
+
+      <div class="tab-content active" data-tab="preview">
+        <div class="preview-toolbar">
+          <span class="toolbar-label">实时预览</span>
+          <button id="btn-reload-preview" class="btn-small">刷新</button>
+        </div>
+        <iframe id="preview-frame" sandbox="allow-same-origin" title="HTML 预览"></iframe>
+      </div>
+
+      <div class="tab-content" data-tab="fields">
+        <div class="content-header">
+          <h3>检测到的表单字段</h3>
+          <span id="fields-count" class="badge">0 个字段</span>
+        </div>
+        <table class="data-table" id="fields-table">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>字段标识</th>
+              <th>类型</th>
+              <th>标签</th>
+              <th>占位符</th>
+              <th>当前值</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div id="fields-empty" class="empty-state">加载 HTML 后此处会显示检测到的字段。</div>
+      </div>
+
+      <div class="tab-content" data-tab="data">
+        <div class="content-header">
+          <h3>已导入数据</h3>
+          <span id="data-count" class="badge">0 行</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="data-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="data-empty" class="empty-state">导入 CSV 或 JSON 后此处会显示数据。</div>
+      </div>
+
+      <div class="tab-content" data-tab="source">
+        <div class="content-header">
+          <h3>HTML 源码</h3>
+          <button id="btn-copy-source" class="btn-small">复制</button>
+        </div>
+        <pre id="source-view" class="source-view"></pre>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="about-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>关于</h2>
+      <p><strong>HTML 表单数据填充工具</strong></p>
+      <p>版本 1.0.0</p>
+      <p>一个基于 Electron 的桌面应用，用于将 CSV / JSON 数据批量填充进 HTML 表单。</p>
+      <p>支持文本框、文本域、下拉框、单选、多选、日期等常见字段。</p>
+      <button class="btn btn-primary" id="btn-close-about">关闭</button>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

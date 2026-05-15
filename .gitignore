@@ -1,0 +1,35 @@
+node_modules/
+dist/
+build/
+out/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Electron build artifacts
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.snap

@@ -1,0 +1,6 @@
+name,age,email,phone,department,hireDate,gender,address,subscribed
+张三,28,zhangsan@example.com,13800138001,engineering,2023-03-15,male,北京市朝阳区建国路88号,true
+李四,32,lisi@example.com,13900139002,product,2022-07-01,female,上海市浦东新区世纪大道100号,false
+王五,25,wangwu@example.com,13700137003,design,2024-01-10,male,广州市天河区珠江新城5号,true
+赵六,29,zhaoliu@example.com,13600136004,marketing,2023-09-20,female,深圳市南山区科技园8号,true
+钱七,35,qianqi@example.com,13500135005,hr,2021-05-08,other,杭州市西湖区文一西路200号,false
