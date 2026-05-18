@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="一个开放的动态广场，分享你的日常、想法与心情">
-  <title data-edit="page-title">小龙虾广场</title>
+  <title data-edit="page-title">云石天宫</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%9E%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%81%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -14,13 +18,16 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <span class="brand-logo" data-edit="brand-logo">🦞</span>
-        <span class="brand-name" data-edit="brand-name">小龙虾广场</span>
+        <span class="brand-logo" data-edit="brand-logo">☁️</span>
+        <span class="brand-name" data-edit="brand-name">云石天宫</span>
       </div>
       <nav class="topbar-actions">
         <button class="icon-btn" id="btn-search-toggle" title="搜索" aria-label="搜索">🔍</button>
         <button class="icon-btn" id="btn-theme-toggle" title="切换主题" aria-label="切换主题">🌙</button>
-        <button class="icon-btn" id="btn-admin-toggle" title="管理员" aria-label="管理员">⚙️</button>
+        <div id="auth-area" class="auth-area">
+          <button class="btn btn-small btn-primary" id="btn-login-show">登录</button>
+        </div>
+        <button class="icon-btn hidden" id="btn-admin-toggle" title="管理员" aria-label="管理员">⚙️</button>
       </nav>
     </div>
     <div class="search-bar hidden" id="search-bar">
@@ -32,7 +39,7 @@
   <!-- 欢迎横幅 -->
   <section class="hero">
     <div class="hero-inner">
-      <h1 class="hero-title" data-edit="hero-title">欢迎来到小龙虾广场</h1>
+      <h1 class="hero-title" data-edit="hero-title">欢迎来到云石天宫</h1>
       <p class="hero-subtitle" data-edit="hero-subtitle">在这里分享你的日常和奇思妙想 ✨</p>
       <div class="hero-stats">
         <span><strong id="stat-posts">0</strong> 条动态</span>
@@ -44,11 +51,17 @@
 
   <main class="main">
 
+    <!-- 未登录提示 -->
+    <section class="login-prompt card hidden" id="login-prompt">
+      <p>登录后即可发布动态、评论和点赞 👋</p>
+      <button class="btn btn-primary" id="btn-login-prompt">去登录</button>
+    </section>
+
     <!-- 发布区 -->
-    <section class="compose card">
+    <section class="compose card" id="compose-area">
       <div class="compose-header">
         <span class="avatar" id="composer-avatar">?</span>
-        <input type="text" id="composer-nickname" class="nickname-input" placeholder="昵称（留空为「匿名」）" maxlength="20">
+        <input type="text" id="composer-nickname" class="nickname-input" placeholder="昵称（留空为使用用户名）" maxlength="20">
       </div>
       <textarea id="composer-content" class="compose-textarea" placeholder="说点什么吧…（Ctrl/Cmd + Enter 发送）" maxlength="500" rows="3"></textarea>
       <div class="compose-footer">
@@ -60,7 +73,7 @@
           <button class="emoji-btn" data-emoji="😎">😎</button>
           <button class="emoji-btn" data-emoji="❤️">❤️</button>
           <button class="emoji-btn" data-emoji="🎉">🎉</button>
-          <button class="emoji-btn" data-emoji="🦞">🦞</button>
+          <button class="emoji-btn" data-emoji="☁️">☁️</button>
         </div>
         <div class="compose-actions">
           <span class="char-count"><span id="char-count">0</span>/500</span>
@@ -88,7 +101,7 @@
 
     <!-- 空状态 -->
     <div class="empty-state hidden" id="empty-state">
-      <div class="empty-icon">🦞</div>
+      <div class="empty-icon">☁️</div>
       <p class="empty-title">还没有动态</p>
       <p class="empty-hint">来发布第一条吧！</p>
     </div>
@@ -97,7 +110,7 @@
 
   <!-- 页脚 -->
   <footer class="footer">
-    <p data-edit="footer-text">© 2026 小龙虾广场 · 用 ❤️ 搭建</p>
+    <p data-edit="footer-text">© 2026 云石天宫 · 用 ❤️ 搭建</p>
   </footer>
 
   <!-- 管理员密码弹窗 -->
@@ -142,6 +155,35 @@
         <button class="btn btn-ghost" data-modal-close>取消</button>
         <button class="btn btn-primary" id="btn-confirm-change-password">保存</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 登录弹窗 -->
+  <div class="modal hidden" id="login-modal">
+    <div class="modal-content">
+      <h2>登录</h2>
+      <input type="email" id="login-email" placeholder="邮箱" autocomplete="email">
+      <input type="password" id="login-password" placeholder="密码" autocomplete="current-password">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-modal-close>取消</button>
+        <button class="btn btn-primary" id="btn-login">登录</button>
+      </div>
+      <p class="modal-switch">还没有账号？<button class="btn-link" id="btn-show-register">去注册</button></p>
+    </div>
+  </div>
+
+  <!-- 注册弹窗 -->
+  <div class="modal hidden" id="register-modal">
+    <div class="modal-content">
+      <h2>注册</h2>
+      <input type="text" id="register-username" placeholder="用户名" maxlength="20">
+      <input type="email" id="register-email" placeholder="邮箱" autocomplete="email">
+      <input type="password" id="register-password" placeholder="密码（至少 6 位）" autocomplete="new-password">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-modal-close>取消</button>
+        <button class="btn btn-primary" id="btn-register">注册</button>
+      </div>
+      <p class="modal-switch">已有账号？<button class="btn-link" id="btn-show-login">去登录</button></p>
     </div>
   </div>
 
@@ -199,6 +241,7 @@
     </div>
   </template>
 
+  <script src="supabase-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
