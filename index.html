@@ -2,137 +2,243 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
-  <title>HTML 表单数据填充工具</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="一个开放的动态广场，分享你的日常、想法与心情">
+  <title data-edit="page-title">小龙虾广场</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%9E%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h1>HTML 填充器</h1>
-        <p class="subtitle">表单数据自动填充工具</p>
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-logo" data-edit="brand-logo">🦞</span>
+        <span class="brand-name" data-edit="brand-name">小龙虾广场</span>
       </div>
-
-      <section class="panel">
-        <h2>步骤 1：加载 HTML</h2>
-        <button id="btn-open-html" class="btn btn-primary">
-          <span class="icon">📄</span> 打开 HTML 文件
-        </button>
-        <div id="html-status" class="status">未加载</div>
-      </section>
-
-      <section class="panel">
-        <h2>步骤 2：导入数据</h2>
-        <button id="btn-import-data" class="btn btn-primary">
-          <span class="icon">📊</span> 导入 CSV / JSON
-        </button>
-        <div id="data-status" class="status">未导入</div>
-      </section>
-
-      <section class="panel">
-        <h2>步骤 3：字段映射</h2>
-        <div id="mapping-area" class="mapping-area">
-          <p class="placeholder">先加载 HTML 与数据，自动识别字段后在此映射。</p>
+      <nav class="topbar-actions">
+        <button class="icon-btn" id="btn-search-toggle" title="搜索" aria-label="搜索">🔍</button>
+        <button class="icon-btn" id="btn-theme-toggle" title="切换主题" aria-label="切换主题">🌙</button>
+        <div id="auth-area" class="auth-area">
+          <button class="btn btn-small btn-primary" id="btn-login-show">登录</button>
         </div>
-        <button id="btn-auto-map" class="btn btn-secondary" disabled>
-          <span class="icon">🔗</span> 自动映射
-        </button>
-      </section>
+        <button class="icon-btn hidden" id="btn-admin-toggle" title="管理员" aria-label="管理员">⚙️</button>
+      </nav>
+    </div>
+    <div class="search-bar hidden" id="search-bar">
+      <input type="text" id="search-input" placeholder="搜索动态、昵称…" autocomplete="off">
+      <button class="btn-link" id="btn-search-close">关闭</button>
+    </div>
+  </header>
 
-      <section class="panel">
-        <h2>步骤 4：填充与导出</h2>
-        <div class="row-nav">
-          <button id="btn-prev-row" class="btn btn-icon" disabled>‹</button>
-          <span id="row-indicator" class="row-indicator">0 / 0</span>
-          <button id="btn-next-row" class="btn btn-icon" disabled>›</button>
+  <!-- 欢迎横幅 -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1 class="hero-title" data-edit="hero-title">欢迎来到小龙虾广场</h1>
+      <p class="hero-subtitle" data-edit="hero-subtitle">在这里分享你的日常和奇思妙想 ✨</p>
+      <div class="hero-stats">
+        <span><strong id="stat-posts">0</strong> 条动态</span>
+        <span><strong id="stat-likes">0</strong> 个赞</span>
+        <span><strong id="stat-comments">0</strong> 条评论</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="main">
+
+    <!-- 未登录提示 -->
+    <section class="login-prompt card hidden" id="login-prompt">
+      <p>登录后即可发布动态、评论和点赞 👋</p>
+      <button class="btn btn-primary" id="btn-login-prompt">去登录</button>
+    </section>
+
+    <!-- 发布区 -->
+    <section class="compose card" id="compose-area">
+      <div class="compose-header">
+        <span class="avatar" id="composer-avatar">?</span>
+        <input type="text" id="composer-nickname" class="nickname-input" placeholder="昵称（留空为使用用户名）" maxlength="20">
+      </div>
+      <textarea id="composer-content" class="compose-textarea" placeholder="说点什么吧…（Ctrl/Cmd + Enter 发送）" maxlength="500" rows="3"></textarea>
+      <div class="compose-footer">
+        <div class="emoji-bar" id="emoji-bar">
+          <button class="emoji-btn" data-emoji="😀">😀</button>
+          <button class="emoji-btn" data-emoji="😂">😂</button>
+          <button class="emoji-btn" data-emoji="🥲">🥲</button>
+          <button class="emoji-btn" data-emoji="🤔">🤔</button>
+          <button class="emoji-btn" data-emoji="😎">😎</button>
+          <button class="emoji-btn" data-emoji="❤️">❤️</button>
+          <button class="emoji-btn" data-emoji="🎉">🎉</button>
+          <button class="emoji-btn" data-emoji="🦞">🦞</button>
         </div>
-        <button id="btn-fill" class="btn btn-success" disabled>
-          <span class="icon">✨</span> 填充当前行
-        </button>
-        <button id="btn-export-single" class="btn btn-secondary" disabled>
-          <span class="icon">💾</span> 导出当前结果
-        </button>
-        <button id="btn-export-batch" class="btn btn-secondary" disabled>
-          <span class="icon">📦</span> 批量导出全部
-        </button>
-      </section>
-    </aside>
+        <div class="compose-actions">
+          <span class="char-count"><span id="char-count">0</span>/500</span>
+          <button class="btn btn-primary" id="btn-publish">发布</button>
+        </div>
+      </div>
+    </section>
 
-    <main class="main">
+    <!-- 过滤栏 -->
+    <section class="filter-bar">
       <div class="tabs">
-        <button class="tab active" data-tab="preview">表单预览</button>
-        <button class="tab" data-tab="fields">检测字段</button>
-        <button class="tab" data-tab="data">数据表</button>
-        <button class="tab" data-tab="source">HTML 源码</button>
+        <button class="tab active" data-filter="latest">最新</button>
+        <button class="tab" data-filter="hot">热门</button>
+        <button class="tab" data-filter="mine">我的</button>
       </div>
-
-      <div class="tab-content active" data-tab="preview">
-        <div class="preview-toolbar">
-          <span class="toolbar-label">实时预览</span>
-          <button id="btn-reload-preview" class="btn-small">刷新</button>
-        </div>
-        <iframe id="preview-frame" sandbox="allow-same-origin" title="HTML 预览"></iframe>
+      <div class="filter-meta">
+        <span id="visible-count">0</span> 条
       </div>
+    </section>
 
-      <div class="tab-content" data-tab="fields">
-        <div class="content-header">
-          <h3>检测到的表单字段</h3>
-          <span id="fields-count" class="badge">0 个字段</span>
-        </div>
-        <table class="data-table" id="fields-table">
-          <thead>
-            <tr>
-              <th>序号</th>
-              <th>字段标识</th>
-              <th>类型</th>
-              <th>标签</th>
-              <th>占位符</th>
-              <th>当前值</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <div id="fields-empty" class="empty-state">加载 HTML 后此处会显示检测到的字段。</div>
-      </div>
+    <!-- 动态列表 -->
+    <section class="feed" id="feed">
+      <!-- 由 app.js 动态渲染 -->
+    </section>
 
-      <div class="tab-content" data-tab="data">
-        <div class="content-header">
-          <h3>已导入数据</h3>
-          <span id="data-count" class="badge">0 行</span>
-        </div>
-        <div class="table-wrapper">
-          <table class="data-table" id="data-table">
-            <thead></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div id="data-empty" class="empty-state">导入 CSV 或 JSON 后此处会显示数据。</div>
-      </div>
+    <!-- 空状态 -->
+    <div class="empty-state hidden" id="empty-state">
+      <div class="empty-icon">🦞</div>
+      <p class="empty-title">还没有动态</p>
+      <p class="empty-hint">来发布第一条吧！</p>
+    </div>
 
-      <div class="tab-content" data-tab="source">
-        <div class="content-header">
-          <h3>HTML 源码</h3>
-          <button id="btn-copy-source" class="btn-small">复制</button>
-        </div>
-        <pre id="source-view" class="source-view"></pre>
-      </div>
-    </main>
-  </div>
+  </main>
 
-  <div id="toast" class="toast"></div>
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p data-edit="footer-text">© 2026 小龙虾广场 · 用 ❤️ 搭建</p>
+  </footer>
 
-  <div id="about-modal" class="modal hidden">
+  <!-- 管理员密码弹窗 -->
+  <div class="modal hidden" id="admin-login-modal">
     <div class="modal-content">
-      <h2>关于</h2>
-      <p><strong>HTML 表单数据填充工具</strong></p>
-      <p>版本 1.0.0</p>
-      <p>一个基于 Electron 的桌面应用，用于将 CSV / JSON 数据批量填充进 HTML 表单。</p>
-      <p>支持文本框、文本域、下拉框、单选、多选、日期等常见字段。</p>
-      <button class="btn btn-primary" id="btn-close-about">关闭</button>
+      <h2>管理员登录</h2>
+      <p class="modal-hint">首次登录请使用默认密码：<code>admin</code>（登录后请尽快修改）</p>
+      <input type="password" id="admin-password-input" placeholder="输入管理员密码" autocomplete="off">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-modal-close>取消</button>
+        <button class="btn btn-primary" id="btn-admin-login">登录</button>
+      </div>
     </div>
   </div>
 
-  <script src="renderer.js"></script>
+  <!-- 管理员面板 -->
+  <div class="admin-panel hidden" id="admin-panel">
+    <div class="admin-panel-header">
+      <span class="admin-badge">⚙️ 管理员模式</span>
+      <button class="btn-link" id="btn-admin-logout">退出管理员</button>
+    </div>
+    <div class="admin-panel-body">
+      <p class="admin-hint">点击页面上带 <span class="edit-icon">✎</span> 标记的文字可以直接编辑；每条动态/评论右上角可删除。</p>
+      <div class="admin-row">
+        <button class="btn btn-ghost" id="btn-change-password">修改密码</button>
+        <button class="btn btn-ghost" id="btn-export-data">导出数据</button>
+        <button class="btn btn-ghost" id="btn-import-data">导入数据</button>
+        <button class="btn btn-danger" id="btn-clear-all">清空全部动态</button>
+      </div>
+      <input type="file" id="import-file-input" accept="application/json" class="hidden">
+    </div>
+  </div>
+
+  <!-- 修改密码弹窗 -->
+  <div class="modal hidden" id="change-password-modal">
+    <div class="modal-content">
+      <h2>修改管理员密码</h2>
+      <input type="password" id="old-password-input" placeholder="当前密码">
+      <input type="password" id="new-password-input" placeholder="新密码（至少 4 位）">
+      <input type="password" id="confirm-password-input" placeholder="确认新密码">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-modal-close>取消</button>
+        <button class="btn btn-primary" id="btn-confirm-change-password">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 登录弹窗 -->
+  <div class="modal hidden" id="login-modal">
+    <div class="modal-content">
+      <h2>登录</h2>
+      <input type="email" id="login-email" placeholder="邮箱" autocomplete="email">
+      <input type="password" id="login-password" placeholder="密码" autocomplete="current-password">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-modal-close>取消</button>
+        <button class="btn btn-primary" id="btn-login">登录</button>
+      </div>
+      <p class="modal-switch">还没有账号？<button class="btn-link" id="btn-show-register">去注册</button></p>
+    </div>
+  </div>
+
+  <!-- 注册弹窗 -->
+  <div class="modal hidden" id="register-modal">
+    <div class="modal-content">
+      <h2>注册</h2>
+      <input type="text" id="register-username" placeholder="用户名" maxlength="20">
+      <input type="email" id="register-email" placeholder="邮箱" autocomplete="email">
+      <input type="password" id="register-password" placeholder="密码（至少 6 位）" autocomplete="new-password">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-modal-close>取消</button>
+        <button class="btn btn-primary" id="btn-register">注册</button>
+      </div>
+      <p class="modal-switch">已有账号？<button class="btn-link" id="btn-show-login">去登录</button></p>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 动态卡片模板 -->
+  <template id="tpl-post">
+    <article class="post card" data-post-id="">
+      <header class="post-header">
+        <span class="avatar"></span>
+        <div class="post-meta">
+          <div class="post-nickname"></div>
+          <time class="post-time"></time>
+        </div>
+        <button class="post-delete icon-btn hidden" title="删除此动态" aria-label="删除">×</button>
+      </header>
+      <div class="post-content"></div>
+      <div class="post-actions">
+        <button class="action-btn like-btn" data-action="like">
+          <span class="action-icon">♡</span>
+          <span class="like-count">0</span>
+        </button>
+        <button class="action-btn comment-btn" data-action="toggle-comments">
+          <span class="action-icon">💬</span>
+          <span class="comment-count">0</span>
+        </button>
+        <button class="action-btn share-btn" data-action="share" title="复制链接">
+          <span class="action-icon">🔗</span>
+        </button>
+      </div>
+      <div class="comments hidden">
+        <div class="comment-list"></div>
+        <div class="comment-compose">
+          <input type="text" class="comment-nickname" placeholder="昵称" maxlength="20">
+          <input type="text" class="comment-input" placeholder="写下你的评论…" maxlength="200">
+          <button class="btn btn-small btn-primary comment-submit">回复</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <!-- 评论模板 -->
+  <template id="tpl-comment">
+    <div class="comment" data-comment-id="">
+      <span class="avatar avatar-small"></span>
+      <div class="comment-body">
+        <div class="comment-meta">
+          <span class="comment-nickname"></span>
+          <time class="comment-time"></time>
+        </div>
+        <div class="comment-content"></div>
+      </div>
+      <button class="comment-delete icon-btn hidden" title="删除评论" aria-label="删除">×</button>
+    </div>
+  </template>
+
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
